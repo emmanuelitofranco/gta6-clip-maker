@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GTA 6 Clip Maker</title>
+<style>
+:root{--bg:#090b10;--panel:#121722;--line:#273142;--muted:#9aa7b8;--text:#f4f7fb;--pink:#ff3f78;--cyan:#54e0d0}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0%,#32152b 0,transparent 35%),var(--bg);color:var(--text);font:15px/1.5 Inter,system-ui,Arial}
+header{padding:25px max(20px,calc((100% - 1100px)/2));border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{font-weight:900;letter-spacing:1.5px;font-size:20px}.brand span{color:var(--pink)}.tag{color:var(--cyan);font-size:12px;letter-spacing:2px}
+main{max-width:1100px;margin:30px auto;padding:0 18px}.hero{margin-bottom:24px}.hero h1{font-size:clamp(30px,5vw,52px);line-height:1.03;margin:8px 0}.hero p{color:var(--muted);max-width:680px}
+.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}.panel{background:linear-gradient(145deg,#151c29,#10141d);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 15px 40px #0005}.panel h2{font-size:17px;margin:0 0 14px}
+.drop{border:1.5px dashed #536078;border-radius:14px;padding:24px;text-align:center;background:#0c111a;cursor:pointer}.drop:hover{border-color:var(--pink)}.drop strong{display:block;font-size:17px}.drop small,.muted{color:var(--muted)}input,select,button{font:inherit}input[type=file]{display:none}.urlrow{display:flex;gap:8px;margin-top:14px}.urlrow input{min-width:0;flex:1}
+input[type=text],select{width:100%;background:#0b1018;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:12px}
+button{border:0;border-radius:10px;padding:11px 15px;background:linear-gradient(90deg,var(--pink),#ff7955);color:white;font-weight:800;cursor:pointer}button.secondary{background:#202a39;border:1px solid #39465a}button:disabled{opacity:.45;cursor:not-allowed}
+video{width:100%;max-height:390px;background:#05070a;border-radius:12px;margin-top:15px} .controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-top:16px}.controls label{flex:1;min-width:130px;color:var(--muted);font-size:13px}.controls select{display:block;margin-top:5px}
+.status{padding:11px 13px;border-radius:10px;background:#0b111a;color:var(--cyan);margin-top:13px;font-size:13px}
+#moments{display:grid;gap:9px;margin-top:13px}.moment{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;background:#0b111a;border:1px solid var(--line);border-radius:11px}.moment small{display:block;color:var(--muted)}.moment button{padding:8px 11px;font-size:12px}
+.note{font-size:12px;color:var(--muted);margin-top:12px}.full{grid-column:1/-1}.meter{height:6px;background:#273142;border-radius:9px;overflow:hidden;margin-top:12px}.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pink),var(--cyan))}
+footer{text-align:center;color:#758195;font-size:12px;padding:28px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}.full{grid-column:auto}header{padding:18px}.urlrow{flex-direction:column}}
+</style>
+</head>
+<body>
+<header><div class="brand">GTA 6 <span>CLIP MAKER</span></div><div class="tag">VICE CITY • CLIP STUDIO</div></header>
+<main>
+<section class="hero"><div class="tag">TU CONTENIDO. TUS MEJORES MOMENTOS.</div><h1>Convierte gameplay<br>en clips virales.</h1><p>Sube una grabación de GTA VI, detecta cambios de escena para encontrar momentos interesantes y recorta clips verticales listos para tus redes.</p></section>
+<div class="grid">
+<section class="panel">
+<h2>01 / Añade tu video</h2>
+<label class="drop" for="file"><strong>＋ Seleccionar video</strong><small>MP4, WebM o MOV desde tu dispositivo</small></label>
+<input id="file" type="file" accept="video/*">
+<div class="urlrow"><input id="yturl" type="text" placeholder="Pega aquí un enlace de YouTube"><button class="secondary" id="preview">Vista previa</button></div>
+<div class="note">Los enlaces de YouTube se pueden previsualizar cuando el video lo permite. Para recortar y exportar, sube un archivo de video que tengas derecho a utilizar.</div>
+<video id="video" controls playsinline></video>
+<div class="status" id="status">Esperando un video…</div><div class="meter"><i id="meter"></i></div>
+</section>
+<section class="panel">
+<h2>02 / Encuentra momentos</h2>
+<p class="muted">El detector analiza cambios visuales entre escenas. Es una ayuda automática, no una IA que entiende todo lo que ocurre en el juego.</p>
+<div class="controls">
+<label>Duración del clip<select id="duration"><option value="15">15 segundos</option><option value="30" selected>30 segundos</option><option value="60">60 segundos</option></select></label>
+<label>Formato<select id="format"><option value="vertical">Vertical 9:16</option><option value="original">Original 16:9</option></select></label>
+</div>
+<div style="display:flex;gap:9px;margin-top:15px;flex-wrap:wrap"><button id="scan" disabled>✦ Detectar momentos</button><button id="stopScan" class="secondary" disabled>Detener</button></div>
+<div id="moments"><div class="note">Los momentos detectados aparecerán aquí.</div></div>
+</section>
+<section class="panel full">
+<h2>03 / Recorta y exporta</h2>
+<p class="muted">Elige un momento detectado para generar un clip. Mantén esta pestaña abierta mientras se procesa.</p>
+<div id="exportStatus" class="status">Todavía no hay clips exportados.</div>
+<div id="downloads"></div>
+<div class="note">El procesamiento se realiza en tu navegador. El rendimiento depende del dispositivo y del tamaño del video.</div>
+</section>
+</div>
+</main>
+<footer>GTA 6 CLIP MAKER • Proyecto independiente, no afiliado a Rockstar Games.</footer>
+<script>
+const $=id=>document.getElementById(id), video=$('video');
+let objectUrl=null, scanning=false, moments=[], currentName='gta6';
+function say(t){$('status').textContent=t}
+function setProgress(n){$('meter').style.width=Math.max(0,Math.min(100,n))+'%'}
+$('file').addEventListener('change',e=>{
+ const f=e.target.files[0]; if(!f)return;
+ if(objectUrl)URL.revokeObjectURL(objectUrl);
+ objectUrl=URL.createObjectURL(f);video.src=objectUrl;currentName=f.name.replace(/\.[^.]+$/,'').replace(/[^a-z0-9-_]/gi,'_').slice(0,30)||'gta6';
+ video.load();$('scan').disabled=false;$('moments').innerHTML='<div class="note">Video cargado. Ya puedes detectar momentos.</div>';moments=[];
+ say('Video listo: '+f.name);
+});
+$('preview').onclick=()=>{
+ const u=$('yturl').value.trim(),m=u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{11})/);
+ if(!m){say('Pega un enlace válido de YouTube.');return}
+ video.src='https://www.youtube-nocookie.com/embed/'+m[1];
+ video.controls=false;video.load();say('Vista previa de YouTube. Para exportar clips, sube el archivo de video.');
+};
+function frameSignature(t){
+ return new Promise(resolve=>{
+  const onSeek=()=>{try{
+   const c=document.createElement('canvas');c.width=48;c.height=27;
+   const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(video,0,0,48,27);
+   const d=x.getImageData(0,0,48,27).data, bins=new Float32Array(12);
+   for(let i=0;i<d.length;i+=4){const lum=(d[i]*.299+d[i+1]*.587+d[i+2]*.114)/255;const b=Math.min(11,Math.floor(lum*12));bins[b]++}
+   const total=48*27;for(let i=0;i<12;i++)bins[i]/=total;
+   resolve(bins);
+  }catch(e){resolve(null)}};
+  video.addEventListener('seeked',onSeek,{once:true});video.currentTime=t;
+ });
+}
+function distance(a,b){let s=0;for(let i=0;i<a.length;i++)s+=Math.abs(a[i]-b[i]);return s/2}
+$('scan').onclick=async()=>{
+ if(!video.src||!Number.isFinite(video.duration)||!video.duration){say('Primero sube un archivo de video.');return}
+ scanning=true;$('scan').disabled=true;$('stopScan').disabled=false;moments=[];$('moments').innerHTML='';
+ const dur=video.duration, step=Math.max(1,Math.min(2,dur/180));let prev=null, scores=[];
+ try{
+  for(let t=0;t<dur;t+=step){
+   if(!scanning)break;
+   const sig=await frameSignature(Math.min(t,Math.max(0,dur-.1)));
+   if(sig&&prev){const score=distance(sig,prev);scores.push({t,score})}
+   if(sig)prev=sig;setProgress((t/dur)*100);say('Analizando escenas… '+Math.round(t/dur*100)+'%');
+  }
+  if(scanning){
+   scores.sort((a,b)=>b.score-a.score);
+   const gap=Number($('duration').value)*.7;
+   for(const s of scores){if(moments.every(m=>Math.abs(m.t-s.t)>gap)&&s.t>2&&s.t<dur-2)moments.push({t:s.t,score:s.score});if(moments.length>=8)break}
+   moments.sort((a,b)=>a.t-b.t);renderMoments();
+   say(moments.length?'Análisis terminado. Revisa los momentos sugeridos.':'No se encontraron cambios claros; prueba otro video.');
+  }
+ }catch(e){say('No se pudo analizar este video en este navegador.')}
+ scanning=false;$('scan').disabled=false;$('stopScan').disabled=true;setProgress(100);
+};
+$('stopScan').onclick=()=>{scanning=false;say('Análisis detenido.')};
+function stamp(t){const m=Math.floor(t/60),s=Math.floor(t%60);return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')}
+function renderMoments(){
+ $('moments').innerHTML='';
+ moments.forEach((m,i)=>{
+  const el=document.createElement('div');el.className='moment';
+  const info=document.createElement('div');info.innerHTML='<b>Momento '+(i+1)+'</b><small>'+stamp(m.t)+' · cambio visual detectado</small>';
+  const btn=document.createElement('button');btn.textContent='Crear clip';btn.onclick=()=>makeClip(m.t);
+  el.append(info,btn);$('moments').append(el);
+ });
+}
+async function makeClip(start){
+ if(!video.src||!video.captureStream){$('exportStatus').textContent='Este navegador no permite capturar el video. Prueba Chrome o Edge.';return}
+ const length=Number($('duration').value),end=Math.min(video.duration,start+length);
+ if(end-start<1)return;
+ $('exportStatus').textContent='Preparando clip…';
+ const vertical=$('format').value==='vertical',w=vertical?720:1280,h=vertical?1280:720;
+ const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');
+ const source=video.captureStream();const out=canvas.captureStream(30);
+ source.getAudioTracks().forEach(t=>out.addTrack(t));
+ const mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));
+ if(!mime){$('exportStatus').textContent='Tu navegador no admite la exportación WebM.';return}
+ const recorder=new MediaRecorder(out,{mimeType:mime});const chunks=[];
+ recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+ const done=new Promise(resolve=>recorder.onstop=resolve);
+ let raf;const draw=()=>{if(video.paused&&video.ended)return;
+  const vw=video.videoWidth||16,vh=video.videoHeight||9;
+  if(vertical){const target=9/16,ratio=vw/vh;let sw,sh,sx,sy;if(ratio>target){sh=vh;sw=vh*target;sx=(vw-sw)/2;sy=0}else{sw=vw;sh=vw/target;sx=0;sy=(vh-sh)/2}ctx.drawImage(video,sx,sy,sw,sh,0,0,w,h)}
+  else{const r=Math.min(w/(video.videoWidth||w),h/(video.videoHeight||h));const dw=(video.videoWidth||w)*r,dh=(video.videoHeight||h)*r;ctx.fillStyle='#000';ctx.fillRect(0,0,w,h);ctx.drawImage(video,(w-dw)/2,(h-dh)/2,dw,dh)}
+  raf=requestAnimationFrame(draw);
+ };
+ try{
+  video.pause();video.currentTime=start;await new Promise(r=>video.addEventListener('seeked',r,{once:true}));
+  recorder.start(250);draw();await video.play();
+  await new Promise(resolve=>{const check=()=>{if(video.currentTime>=end||video.ended){resolve();return}setTimeout(check,100)};check()});
+  video.pause();cancelAnimationFrame(raf);recorder.stop();await done;out.getTracks().forEach(t=>t.stop());
+  const blob=new Blob(chunks,{type:mime}),url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=currentName+'_clip_'+stamp(start).replace(':','-')+'.webm';a.textContent='⬇ Descargar clip '+stamp(start);
+  a.style.cssText='display:inline-block;margin:12px 10px 0 0;color:#54e0d0;font-weight:800';
+  $('downloads').append(a);$('exportStatus').textContent='¡Clip creado! Formato '+(vertical?'vertical 9:16':'original')+'.';
+ }catch(e){$('exportStatus').textContent='No se pudo crear el clip. Prueba con un video más pequeño.';try{recorder.stop()}catch(_){}}
+}
+</script>
+</body></html>
